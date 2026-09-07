@@ -23,7 +23,7 @@ export default function MediaUploader({
   resourceType: "image" | "video";
   multiple: boolean;
   items: UploadedItem[];
-  /** Called per selected file; parent uploads to /api/upload (and persists to Supabase if needed). */
+  /** Called per selected file; parent uploads directly to Cloudinary and persists to Supabase if needed. */
   onUpload: (file: File) => Promise<void>;
   /** Called when the user removes an existing item. */
   onRemove: (item: UploadedItem) => Promise<void>;

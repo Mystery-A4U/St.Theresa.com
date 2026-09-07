@@ -8,16 +8,34 @@ import MediaUploader, { type UploadedItem } from "@/components/admin/MediaUpload
 import type { EventMedia, SchoolEvent } from "@/lib/types";
 
 async function uploadFile(file: File, resourceType: "image" | "video") {
+  const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
+  const uploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET;
+
+  if (!cloudName || !uploadPreset) {
+    throw new Error("Cloudinary upload is not configured. Add NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME and NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET in Vercel.");
+  }
+
+  const maxBytes = resourceType === "video" ? 100 * 1024 * 1024 : 10 * 1024 * 1024;
+  if (file.size > maxBytes) {
+    throw new Error(`File is too large. Maximum ${maxBytes / (1024 * 1024)}MB for ${resourceType}s.`);
+  }
+
+  // Direct browser → Cloudinary upload. Large videos never pass through Vercel,
+  // avoiding server request/body limits and base64 memory overhead.
   const formData = new FormData();
   formData.append("file", file);
-  formData.append("resourceType", resourceType);
+  formData.append("upload_preset", uploadPreset);
+  formData.append("folder", "st-theresa-school/events");
 
-  const res = await fetch("/api/upload", { method: "POST", body: formData });
+  const endpoint = `https://api.cloudinary.com/v1_1/${cloudName}/${resourceType}/upload`;
+  const res = await fetch(endpoint, { method: "POST", body: formData });
+  const body = await res.json().catch(() => ({}));
+
   if (!res.ok) {
-    const body = await res.json().catch(() => ({}));
-    throw new Error(body.error || "Upload failed");
+    throw new Error(body?.error?.message || "Cloudinary upload failed");
   }
-  return (await res.json()) as { url: string; publicId: string };
+
+  return { url: body.secure_url as string, publicId: body.public_id as string };
 }
 
 async function deleteFromCloudinaryApi(mediaUrl: string, mediaType: "image" | "video") {
