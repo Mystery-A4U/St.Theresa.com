@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -39,8 +40,15 @@ export default function Navbar() {
     >
       <div className="container-school flex h-20 items-center justify-between">
         <Link href="/" className="flex items-center gap-3">
-          <span className="flex h-11 w-11 items-center justify-center rounded-full bg-maroon text-lg font-serif text-white">
-            ST
+          <span className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-full bg-white shadow-sm ring-1 ring-ink/10">
+            <Image
+              src="/school-logo.png"
+              alt="St. Theresa Matriculation Higher Secondary School logo"
+              width={56}
+              height={56}
+              className="h-full w-full object-contain p-0.5"
+              priority
+            />
           </span>
           <span className="leading-tight">
             <span className="block font-serif text-[15px] font-semibold text-ink md:text-base">
